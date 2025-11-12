@@ -26,10 +26,18 @@ jobs:
           if (Test-Path $file) {
             Write-Host "🩹 Patching wcstok() calls for MinGW compatibility..."
             $content = Get-Content $file -Raw
+
             # injeta 'state' e corrige chamadas
-            $content = $content -replace '(wchar_t\* token = wcstok\(tmp, L"\\\\\"\);)', "wchar_t *state = NULL;`r`n    wchar_t* token = wcstok(tmp, L""\\\""", &state);"
-            $content = $content -replace 'wcstok\(tmp, L"\\\\\"\)', 'wcstok(tmp, L"\\", &state)'
-            $content = $content -replace 'wcstok\(NULL, L"\\\\\"\)', 'wcstok(NULL, L"\\", &state)'
+            $pattern1 = '(wchar_t\* token = wcstok\(tmp, L"\\\\\"\);)'
+            $replacement1 = @'
+wchar_t *state = NULL;
+    wchar_t* token = wcstok(tmp, L"\\\\", &state);
+'@
+            $content = [regex]::Replace($content, $pattern1, $replacement1)
+
+            $content = $content -replace 'wcstok\(tmp, L"\\\\\"\)', 'wcstok(tmp, L"\\\\", &state)'
+            $content = $content -replace 'wcstok\(NULL, L"\\\\\"\)', 'wcstok(NULL, L"\\\\", &state)'
+
             Set-Content $file $content -Encoding UTF8
             Write-Host "✅ wcstok patch applied successfully"
           } else {
