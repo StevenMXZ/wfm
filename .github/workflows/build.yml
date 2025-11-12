@@ -13,13 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up w64devkit environment
+      - name: Download and extract w64devkit
         shell: pwsh
         run: |
-          # Clonar e preparar w64devkit
-          git clone https://github.com/skeeto/w64devkit.git
-          Copy-Item "w64devkit\bin" -Destination "C:\w64devkit" -Recurse
+          $zipUrl = "https://github.com/skeeto/w64devkit/releases/latest/download/w64devkit.zip"
+          Invoke-WebRequest -Uri $zipUrl -OutFile "w64devkit.zip"
+          Expand-Archive w64devkit.zip -DestinationPath "C:\w64devkit"
           echo "C:\w64devkit\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Write-Host "✅ w64devkit instalado com sucesso."
 
       - name: Patch wcstok usage in src/file_node.c
         shell: pwsh
