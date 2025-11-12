@@ -12,10 +12,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up w64devkit
+      - name: Download w64devkit
         run: |
           curl -L -o w64devkit.zip https://github.com/skeeto/w64devkit/releases/download/v1.20.0/w64devkit-x86_64.zip
-          tar -xf w64devkit.zip
+          Expand-Archive w64devkit.zip -DestinationPath w64devkit
           echo "${{ github.workspace }}\\w64devkit\\bin" >> $env:GITHUB_PATH
 
       - name: Build using make
