@@ -16,7 +16,7 @@ jobs:
       - name: Download and extract w64devkit
         shell: pwsh
         run: |
-          $zipUrl = "https://github.com/skeeto/w64devkit/releases/latest/download/w64devkit.zip"
+          $zipUrl = "https://github.com/skeeto/w64devkit/releases/download/v1.20.0/w64devkit-x86_64-1.20.0.zip"
           Invoke-WebRequest -Uri $zipUrl -OutFile "w64devkit.zip"
           Expand-Archive w64devkit.zip -DestinationPath "C:\w64devkit"
           echo "C:\w64devkit\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -30,7 +30,7 @@ jobs:
           $content = $content -replace 'wchar_t\* token = wcstok\(tmp, L"\\\\\"\);', 'wchar_t *state = NULL;`n    wchar_t *token = wcstok(tmp, L"\\\\", &state);'
           $content = $content -replace 'token = wcstok\(NULL, L"\\\\\"\);', 'token = wcstok(NULL, L"\\\\", &state);'
           Set-Content $file $content -Encoding UTF8
-          Write-Host "✅ wcstok fix applied successfully."
+          Write-Host "✅ wcstok fix aplicado com sucesso."
 
       - name: Build project using make
         shell: cmd
