@@ -19,11 +19,17 @@ jobs:
           powershell -Command "Expand-Archive w64devkit.zip -DestinationPath w64devkit"
           echo %CD%\w64devkit\bin>> %GITHUB_PATH%
 
-      - name: Verify toolchain
-        shell: cmd
+      - name: Apply wcstok compatibility fix
+        shell: pwsh
         run: |
-          gcc --version
-          make --version
+          $file = "src/file_node.c"
+          $content = Get-Content $file -Raw
+          # Adiciona variável state no início da função se não existir
+          $content = $content -replace '(wchar_t\* token = wcstok\(tmp, L"\\\\\"\);)', 'wchar_t *state = NULL; `n    $1'
+          # Corrige chamadas de wcstok
+          $content = $content -replace 'wcstok\(tmp, L"\\\\\"\)', 'wcstok(tmp, L"\\", &state)'
+          $content = $content -replace 'wcstok\(NULL, L"\\\\\"\)', 'wcstok(NULL, L"\\", &state)'
+          Set-Content $file $content -Encoding UTF8
 
       - name: Build project
         shell: cmd
