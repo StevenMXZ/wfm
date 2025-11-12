@@ -13,23 +13,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download and extract w64devkit
-        shell: pwsh
+        shell: cmd
         run: |
           curl -L -o w64devkit.zip https://github.com/skeeto/w64devkit/releases/download/v1.20.0/w64devkit-x86_64.zip
-          Expand-Archive w64devkit.zip -DestinationPath w64devkit
-          Add-Content -Path $env:GITHUB_PATH -Value "$PWD\w64devkit\bin"
+          powershell -Command "Expand-Archive w64devkit.zip -DestinationPath w64devkit"
+          echo %CD%\w64devkit\bin>> %GITHUB_PATH%
 
       - name: Verify toolchain
-        shell: pwsh
+        shell: cmd
         run: |
           gcc --version
           make --version
 
-      - name: Build WFM
-        shell: pwsh
+      - name: Build project
+        shell: cmd
         run: |
-          if (Test-Path wfm.exe) { Remove-Item wfm.exe }
-          if (Test-Path obj) { Remove-Item obj -Recurse -Force }
+          if exist wfm.exe del wfm.exe
+          if exist obj rmdir /s /q obj
           make -j8
 
       - name: Upload artifact
