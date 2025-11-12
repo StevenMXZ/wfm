@@ -1,0 +1,31 @@
+name: Build WFM
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up w64devkit
+        run: |
+          curl -L -o w64devkit.zip https://github.com/skeeto/w64devkit/releases/download/v1.20.0/w64devkit-x86_64.zip
+          tar -xf w64devkit.zip
+          echo "${{ github.workspace }}\\w64devkit\\bin" >> $env:GITHUB_PATH
+
+      - name: Build using make
+        run: |
+          if (Test-Path wfm.exe) { Remove-Item wfm.exe }
+          if (Test-Path obj) { Remove-Item obj -Recurse -Force }
+          make -j8
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wfm-build
+          path: wfm.exe
