@@ -1,4 +1,4 @@
-name: Build WFM
+name: Build WFM (auto-fix wcstok)
 
 on:
   push:
@@ -23,15 +23,20 @@ jobs:
         shell: pwsh
         run: |
           $file = "src/file_node.c"
-          $content = Get-Content $file -Raw
-          # Adiciona variável state no início da função se não existir
-          $content = $content -replace '(wchar_t\* token = wcstok\(tmp, L"\\\\\"\);)', 'wchar_t *state = NULL; `n    $1'
-          # Corrige chamadas de wcstok
-          $content = $content -replace 'wcstok\(tmp, L"\\\\\"\)', 'wcstok(tmp, L"\\", &state)'
-          $content = $content -replace 'wcstok\(NULL, L"\\\\\"\)', 'wcstok(NULL, L"\\", &state)'
-          Set-Content $file $content -Encoding UTF8
+          if (Test-Path $file) {
+            Write-Host "🩹 Patching wcstok() calls for MinGW compatibility..."
+            $content = Get-Content $file -Raw
+            # injeta 'state' e corrige chamadas
+            $content = $content -replace '(wchar_t\* token = wcstok\(tmp, L"\\\\\"\);)', "wchar_t *state = NULL;`r`n    wchar_t* token = wcstok(tmp, L""\\\""", &state);"
+            $content = $content -replace 'wcstok\(tmp, L"\\\\\"\)', 'wcstok(tmp, L"\\", &state)'
+            $content = $content -replace 'wcstok\(NULL, L"\\\\\"\)', 'wcstok(NULL, L"\\", &state)'
+            Set-Content $file $content -Encoding UTF8
+            Write-Host "✅ wcstok patch applied successfully"
+          } else {
+            Write-Host "⚠️ File src/file_node.c not found — skipping patch"
+          }
 
-      - name: Build project
+      - name: Build WFM
         shell: cmd
         run: |
           if exist wfm.exe del wfm.exe
